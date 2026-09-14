@@ -95,6 +95,7 @@ export async function PATCH(req: NextRequest) {
           await tx.appUser.delete({ where: { id: target.id } });
           await tx.auditLog.create({
             data: {
+              councilId: councilId(),
               userId: me.id,
               action: "USER_DELETED",
               entityType: "app_user",
@@ -117,6 +118,7 @@ export async function PATCH(req: NextRequest) {
       const u = await tx.appUser.update({ where: { id: userId }, data });
       await tx.auditLog.create({
         data: {
+          councilId: councilId(),
           userId: session.sub,
           action: `USER_${String(action).toUpperCase()}`,
           entityType: "app_user",

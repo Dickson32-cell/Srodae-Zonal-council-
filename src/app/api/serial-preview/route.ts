@@ -1,4 +1,4 @@
-// GET /api/serial-preview?area=Adweso%20Town
+// GET /api/serial-preview?area=<council area>
 // Shows staff the serial the NEXT record in that area will receive.
 // Read-only preview — the real number is allocated transactionally on save.
 import { NextRequest, NextResponse } from "next/server";

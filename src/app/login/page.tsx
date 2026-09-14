@@ -38,7 +38,6 @@ export default function LoginPage() {
     <div className="login-wrap">
       <form className="login-card" onSubmit={submit}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.jpg" alt="Srodae Zonal Council logo" className="logo-lg" />
         <h1>Srodae Zonal Council</h1>
         <p>Temporal Structures Fee Register — staff sign in</p>
 

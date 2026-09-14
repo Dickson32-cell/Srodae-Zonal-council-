@@ -36,9 +36,8 @@ export default function TopBar({ username, role, canReviewPasswords, showMaster 
     <header className="topbar" style={{ position: "relative", paddingBottom: pwOpen ? 290 : undefined }}>
       <div className="brand">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.jpg" alt="Adweso Zonal Council logo" className="brand-logo" />
         <div>
-          <div className="t1">Adweso Zonal Council</div>
+          <div className="t1">Srodae Zonal Council</div>
           <div className="t2">Temporal Structures Fee Register</div>
         </div>
       </div>

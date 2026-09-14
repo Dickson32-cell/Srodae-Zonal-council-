@@ -47,7 +47,6 @@ export default function RegisterPage() {
     <div className="login-wrap">
       <form className="login-card" onSubmit={submit}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.jpg" alt="Srodae Zonal Council logo" className="logo-lg" />
         <h1>Staff Registration</h1>
         <p>Srodae Zonal Council — Temporal Structures Fee Register</p>
 

@@ -11,6 +11,18 @@ export const metadata: Metadata = {
     ],
     apple: "/apple-touch-icon.png",
   },
+  openGraph: {
+    title: "Srodae Zonal Council — Temporal Structures Register",
+    description: "Official register for temporal structure fees, Srodae Zonal Council",
+    images: [{ url: "/og-preview.png", width: 1200, height: 630 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Srodae Zonal Council — Temporal Structures Register",
+    description: "Official register for temporal structure fees, Srodae Zonal Council",
+    images: ["/og-preview.png"],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -115,7 +115,7 @@ export async function GET(req: NextRequest) {
 
   const stamp = new Date().toISOString().slice(0, 10);
   const areaPart = area ? area.replace(/[^a-zA-Z0-9]/g, "-") : "All-Areas";
-  const filename = `Adweso-Register-${areaPart}-${stamp}.xlsx`;
+  const filename = `Srodae-Register-${areaPart}-${stamp}.xlsx`;
 
   return new NextResponse(buf, {
     headers: {
