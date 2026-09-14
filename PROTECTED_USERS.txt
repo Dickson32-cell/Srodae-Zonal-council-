@@ -1,0 +1,15 @@
+ADWESO PRODUCTION DATABASE — PROTECTED USERS (never delete in test cleanup)
+Verified live 13 Sep 2026:
+
+  admin       | ADMIN  (primary - Dickson's account)
+  Dickson32   | STAFF  (approved by Dickson - REAL)
+  Joseph      | STAFF  (approved by Dickson - REAL)
+  Manuel      | STAFF  (approved by Dickson - REAL)
+
+RULE FOR ALL TEST DATA CLEANUP (standing instruction from Dickson):
+- NEVER delete these 4 users. They are real council staff.
+- Test cleanup touches ONLY records/payments created by the test run itself.
+- Test users, if ever needed, must use names prefixed TEST_ and be deleted
+  immediately after verification - and NEVER any of the 4 above.
+- Before any delete query: re-run the user list first and match against
+  this exact list. If a username is not in this file as TEST_, it stays.

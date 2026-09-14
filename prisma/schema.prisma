@@ -1,0 +1,158 @@
+// Adweso Zonal Council Database System — Prisma schema
+// Temporal Structures Fee Register
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// The register — one row per temporal structure / fee payer
+model FeePayer {
+  id            String   @id @default(uuid()) @db.Uuid
+  councilId     String   @default("adweso") @map("council_id") @db.VarChar(24)
+  serialNumber  String   @unique @map("serial_number") @db.VarChar(20)
+  electoralArea String   @map("electoral_area") @db.VarChar(40)
+  name          String   @db.VarChar(120)
+  businessName  String   @map("business_name") @db.VarChar(150)
+  telephone     String   @db.VarChar(10)
+  streetName    String   @map("street_name") @db.VarChar(150)
+  latitude      Decimal?  @db.Decimal(10, 7)  // GPS of the structure
+  longitude     Decimal?  @db.Decimal(10, 7)  // GPS of the structure
+  fee           Decimal  @db.Decimal(12, 2)
+  status        String   @default("UNPAID") @db.VarChar(10) // UNPAID | PAID
+  recordStatus  String   @default("ACTIVE") @map("record_status") @db.VarChar(10) // ACTIVE | INACTIVE
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  fees     Fee[]
+  payments Payment[]
+  pendingEdits PendingEdit[]
+
+  @@map("fee_payer")
+}
+
+// Billing events (supports cumulative Total)
+model Fee {
+  id          String   @id @default(uuid()) @db.Uuid
+  councilId   String   @default("adweso") @map("council_id") @db.VarChar(24)
+  feePayerId  String   @map("fee_payer_id") @db.Uuid
+  amount      Decimal  @db.Decimal(12, 2)
+  description String   @default("Temporal structure fee") @db.VarChar(200)
+  billedAt    DateTime @default(now()) @map("billed_at") @db.Timestamptz(3)
+  createdBy   String?  @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  feePayer FeePayer @relation(fields: [feePayerId], references: [id], onDelete: Cascade)
+
+  @@map("fee")
+}
+
+// Cash received — the ledger. Marking a record PAID auto-writes a settlement row here.
+model Payment {
+  id          String   @id @default(uuid()) @db.Uuid
+  councilId   String   @default("adweso") @map("council_id") @db.VarChar(24)
+  feePayerId  String   @map("fee_payer_id") @db.Uuid
+  amount      Decimal  @db.Decimal(12, 2)
+  method      String   @default("CASH") @db.VarChar(10)
+  receiptNo   String?  @map("receipt_no") @db.VarChar(30)
+  receivedAt  DateTime @default(now()) @map("received_at") @db.Timestamptz(3)
+  receivedBy  String?  @map("received_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  feePayer FeePayer @relation(fields: [feePayerId], references: [id], onDelete: Cascade)
+  receivedByUser AppUser? @relation("PaymentReceivedBy", fields: [receivedBy], references: [id])
+
+  @@map("payment")
+}
+
+// One row per electoral area — the serial sequence (transactional safety)
+model SerialCounter {
+  councilId     String @default("adweso") @map("council_id") @db.VarChar(24)
+  electoralArea String @map("electoral_area") @db.VarChar(40)
+  lastNumber    Int    @default(0) @map("last_number")
+
+  @@id([councilId, electoralArea])
+  @@map("serial_counter")
+}
+
+// Staff logins
+model AppUser {
+  id           String   @id @default(uuid()) @db.Uuid
+  councilId    String   @default("adweso") @map("council_id") @db.VarChar(24)
+  username     String   @db.VarChar(50)
+  passwordHash String   @map("password_hash")
+  fullName     String   @map("full_name") @db.VarChar(120)
+  role         String   @default("STAFF") @db.VarChar(10) // ADMIN | STAFF
+  adminLevel   String?  @map("admin_level") @db.VarChar(10) // for ADMINs: FULL | EDITOR | VIEWER (primary admin = FULL)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  passwordRequests PasswordChangeRequest[]
+  paymentsReceived Payment[] @relation("PaymentReceivedBy")
+
+  @@unique([councilId, username])
+  @@map("app_user")
+}
+
+// Password change requests — applied only after admin approval
+model PasswordChangeRequest {
+  id          String    @id @default(uuid()) @db.Uuid
+  councilId   String    @default("adweso") @map("council_id") @db.VarChar(24)
+  userId      String    @map("user_id") @db.Uuid
+  newHash     String    @map("new_hash")
+  status      String    @default("PENDING") @db.VarChar(10) // PENDING | APPROVED | REJECTED
+  requestedAt DateTime  @default(now()) @map("requested_at") @db.Timestamptz(3)
+  reviewedBy  String?   @map("reviewed_by") @db.Uuid
+  reviewedAt  DateTime? @map("reviewed_at") @db.Timestamptz(3)
+
+  user AppUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_change_request")
+}
+
+// Staff edit requests — identity-field changes awaiting admin approval
+model PendingEdit {
+  id          String    @id @default(uuid()) @db.Uuid
+  councilId   String    @default("adweso") @map("council_id") @db.VarChar(24)
+  feePayerId  String    @map("fee_payer_id") @db.Uuid
+  before      Json      // snapshot of the fields being changed
+  after       Json      // requested new values
+  status      String    @default("PENDING") @db.VarChar(10) // PENDING | APPROVED | REJECTED
+  requestedBy String    @map("requested_by") @db.Uuid
+  reviewedBy  String?   @map("reviewed_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  reviewedAt  DateTime? @map("reviewed_at") @db.Timestamptz(3)
+
+  feePayer FeePayer @relation(fields: [feePayerId], references: [id], onDelete: Cascade)
+
+  @@map("pending_edit")
+}
+
+// Immutable audit trail
+model AuditLog {
+  id         BigInt   @id @default(autoincrement())
+  councilId  String   @default("adweso") @map("council_id") @db.VarChar(24)
+  userId     String?  @map("user_id") @db.Uuid
+  action     String   @db.VarChar(30)
+  entityType String   @map("entity_type") @db.VarChar(20)
+  entityId   String?  @map("entity_id") @db.Uuid
+  details    Json?
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@map("audit_log")
+}
+// ---------------------------------------------------------------------------
+// LICENSE — RAMEDIC pay-per-100-registrations licensing state (single row id=1)
+// ---------------------------------------------------------------------------
+model LicenseState {
+  id            String    @id @db.VarChar(24) // = councilId (adweso, newtown, ...)
+  paidThrough   Int       @default(0) @map("paid_through")  // registrations paid for
+  licenseKey    String?   @map("license_key") @db.VarChar(30) // key that performed the last unlock
+  lastPaymentAt DateTime? @map("last_payment_at")
+
+  @@map("license_state")
+}
