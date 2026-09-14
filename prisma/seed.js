@@ -38,7 +38,7 @@ async function main() {
       councilId: COUNCIL,
       username: "admin",
       passwordHash: hash,
-      fullName: "Abdul Rashid Dickson",
+      fullName: "Council Administrator",
       role: "ADMIN",
       active: true,
     },
