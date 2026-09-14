@@ -22,7 +22,6 @@ export default function MasterPage() {
   const [data, setData] = useState<Master | null>(null);
   const [denied, setDenied] = useState(false);
   const [genCouncil, setGenCouncil] = useState("newtown");
-  const [genTier, setGenTier] = useState("100");
   const [genKey, setGenKey] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -39,10 +38,10 @@ export default function MasterPage() {
     const res = await fetch("/api/master", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "keygen", councilId: genCouncil, paidThrough: parseInt(genTier, 10) || 0 }),
+      body: JSON.stringify({ action: "keygen", councilId: genCouncil }),
     });
     const d = await res.json();
-    if (res.ok) setGenKey(`${d.key}   (unlocks registrations up to ${d.unlocksUpTo})`);
+    if (res.ok) setGenKey(`${d.key}   — unlocks registrations ${d.currentPaidThrough + 1} to ${d.keyTIER} for ${d.councilId}`);
     else setGenKey(d.error || "failed");
     setBusy(false);
   }
@@ -88,19 +87,15 @@ export default function MasterPage() {
       </table>
 
       <h2 style={{ fontSize: 16, margin: "26px 0 8px" }}>Generate unlock key (after payment received)</h2>
-      <p className="sub" style={{ fontSize: 12.5 }}>Council pays the US${data.feeUSD} fee → generate their key → send it to them. The key unlocks the next 100 registrations on their system.</p>
+      <p className="sub" style={{ fontSize: 12.5 }}>Council pays the US${data.feeUSD} fee → select the council → Generate → send the key. The key is tied to that council's CURRENT next tier — it works once, and only for them.</p>
       <form onSubmit={genKeyNow} style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end" }}>
         <label className="fld" style={{ minWidth: 180 }}>
-          <span className="cap">Council ID</span>
+          <span className="cap">Council (that paid)</span>
           <select value={genCouncil} onChange={(e) => setGenCouncil(e.target.value)}>
-            {["newtown", "ogua", "nkukwao", "betom", "srodae", "oldestate", "anlotown", "adweso"].map((c) => (
+            {["adweso", "newtown", "ogua", "nkukwao", "betom", "srodae", "oldestate", "anlotown"].map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
-        </label>
-        <label className="fld" style={{ minWidth: 140 }}>
-          <span className="cap">Their paid-through number</span>
-          <input type="number" value={genTier} onChange={(e) => setGenTier(e.target.value)} placeholder="0, 100, 200…" />
         </label>
         <button className="btn btn-primary" disabled={busy}>{busy ? "Generating…" : "Generate key"}</button>
       </form>

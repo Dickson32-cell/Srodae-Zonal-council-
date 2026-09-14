@@ -67,12 +67,26 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => ({}));
   if (body.action === "keygen") {
+    // The tier is read from the database, NEVER typed by the operator:
+    // target = council's CURRENT paidThrough + 100. A key can only ever
+    // unlock the NEXT tier for that council - it is impossible to generate
+    // a key for a tier that is already unlocked, and once applied the same
+    // key can never verify again (its tier has moved past).
     const councilId = String(body.councilId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-    const paidThrough = parseInt(String(body.paidThrough ?? ""), 10);
-    if (!councilId || Number.isNaN(paidThrough))
-      return NextResponse.json({ error: "councilId and paidThrough required" }, { status: 400 });
-    const key = deriveKey(councilId, paidThrough);
-    return NextResponse.json({ ok: true, councilId, paidThrough, unlocksUpTo: paidThrough + FREE_LIMIT, key });
+    if (!councilId || !ALL_COUNCILS.includes(councilId))
+      return NextResponse.json({ error: "Unknown council" }, { status: 400 });
+    const state = await prisma.licenseState.findUnique({ where: { id: councilId } });
+    const current = state?.paidThrough ?? 0;
+    const target = current + FREE_LIMIT;
+    const key = deriveKey(councilId, target);
+    return NextResponse.json({
+      ok: true,
+      councilId,
+      currentPaidThrough: current,
+      keyTIER: target,          // the tier this key unlocks (registrations current+1 .. target)
+      unlocksUpTo: target,      // registrations allowed after applying = target + ... displayed as target
+      key,
+    });
   }
   return NextResponse.json({ error: "Unknown action" }, { status: 400 });
 }

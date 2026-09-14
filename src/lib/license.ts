@@ -86,19 +86,63 @@ export function verifyKey(councilId: string, paidThrough: number, key: string): 
   return deriveKey(councilId, paidThrough) === normalized;
 }
 
+// ---------------------------------------------------------------------------
+// Unlock attempt tracking — in-memory rate limit + audit trail on every
+// attempt. applyUnlockKey can only ever raise paidThrough by exactly one
+// tier (current + 100), and only a key derived for THAT exact target
+// verifies. After a successful apply, the same key can never work again:
+// the council's tier has moved past the key's target, so verifyKey fails.
+// ---------------------------------------------------------------------------
+const keyAttempts = new Map<string, { count: number; resetAt: number }>();
+const KEY_RATE_MAX = 5;        // attempts per window
+const KEY_RATE_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+
+function keyRateCheck(council: string): { ok: boolean; retryInMin: number } {
+  const now = Date.now();
+  const a = keyAttempts.get(council);
+  if (!a || now > a.resetAt) {
+    keyAttempts.set(council, { count: 1, resetAt: now + KEY_RATE_WINDOW_MS });
+    return { ok: true, retryInMin: 0 };
+  }
+  a.count += 1;
+  if (a.count > KEY_RATE_MAX) {
+    return { ok: false, retryInMin: Math.ceil((a.resetAt - now) / 60000) };
+  }
+  return { ok: true, retryInMin: 0 };
+}
+
+async function auditKeyAttempt(council: string, applied: boolean, detail: object) {
+  await prisma.auditLog.create({
+    data: {
+      councilId: council,
+      userId: null,
+      action: applied ? "LICENSE_KEY_APPLIED" : "LICENSE_KEY_REJECTED",
+      entityType: "license_state",
+      entityId: null,
+      details: { council, ...detail } as object,
+    },
+  }).catch(() => {}); // audit must never block the unlock flow
+}
+
 // Apply a paid unlock: raises paidThrough by FREE_LIMIT (one payment = 100 more
 // registrations) and stores the key that unlocked it.
 export async function applyUnlockKey(councilKey: string, key: string) {
   // councilKey = this deployment's COUNCIL_ID (from the license API route)
+  const rl = keyRateCheck(councilKey);
+  if (!rl.ok) {
+    return { ok: false as const, error: `Too many key attempts. Try again in ${rl.retryInMin} minutes.` };
+  }
   const state = await getLicenseState();
   const target = state.paidThrough + FREE_LIMIT;
   if (!verifyKey(councilKey, target, key)) {
+    await auditKeyAttempt(councilKey, false, { attemptedTarget: target, reason: "invalid-or-reused-key" });
     return { ok: false as const, error: "Invalid key. Check with the system provider after payment." };
   }
   const updated = await prisma.licenseState.update({
     where: { id: councilKey },
     data: { paidThrough: target, licenseKey: key.trim().toUpperCase(), lastPaymentAt: new Date() },
   });
+  await auditKeyAttempt(councilKey, true, { unlockedThrough: target });
   return { ok: true as const, paidThrough: updated.paidThrough };
 }
 
