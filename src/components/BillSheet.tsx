@@ -37,7 +37,7 @@ export default function BillSheet({ data }: { data: BillData }) {
         .bill-main { flex: 1 1 68%; border: 1px solid #444; padding: 12px 14px; }
         .bill-stub { flex: 1 1 30%; border: 1px solid #444; padding: 12px; display: flex; flex-direction: column; }
         .bill-head { display: flex; align-items: center; gap: 10px; }
-        .bill-head .logo { width: 54px; height: 54px; border: 1px solid #999; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 7px; text-align: center; color: #555; }
+        .bill-head .logo { width: 54px; height: 54px; object-fit: contain; }
         .bill-head .htxt { flex: 1; text-align: center; font-weight: bold; font-size: 13px; line-height: 1.5; }
         .bill-head .htxt .sub { font-weight: normal; font-size: 10px; }
         .bill-cust { border-top: 1px solid #444; border-bottom: 1px solid #444; margin-top: 10px; padding: 7px 0; font-size: 12.5px; font-weight: bold; }
@@ -64,7 +64,8 @@ export default function BillSheet({ data }: { data: BillData }) {
       {/* ============ MAIN BILL ============ */}
       <div className="bill-main">
         <div className="bill-head">
-          <div className="logo">[LOGO]</div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assembly-logo.jpg" alt="Assembly logo" className="logo" />
           <div className="htxt">
             {data.councilName.toUpperCase()}
             <br />
@@ -72,7 +73,8 @@ export default function BillSheet({ data }: { data: BillData }) {
             <br />
             <span className="sub">PAY BEFORE 31ST MARCH, 2027 TO AVOID PENALTY</span>
           </div>
-          <div className="logo">[LOGO]</div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/coat-of-arms.jpg" alt="Ghana coat of arms" className="logo" />
         </div>
 
         <div className="bill-cust">
@@ -134,7 +136,12 @@ export default function BillSheet({ data }: { data: BillData }) {
 
       {/* ============ COUNTERFOIL ============ */}
       <div className="bill-stub">
-        <div className="stub-logos">[LOGO] [COAT OF ARMS]</div>
+        <div className="stub-logos" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assembly-logo.jpg" alt="Assembly logo" style={{ width: 40, height: 40, objectFit: "contain" }} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/coat-of-arms.jpg" alt="Ghana coat of arms" style={{ width: 48, height: 36, objectFit: "contain" }} />
+        </div>
         <div className="stub-contact">
           {data.councilName.toUpperCase()}<br />
           TEMPORAL STRUCTURES BILL<br /><br />
