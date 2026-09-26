@@ -1,9 +1,12 @@
 "use client";
 // /bill/print — batch bill printing. Admin/staff arrive with ?ids=a,b,c
-// (selected tickboxes in the register). Each bill renders on its own printed page.
+// (selected tickboxes in the register). Each bill renders on its own A5 page.
+// Director name: typed once, remembered in this browser, printed on every bill.
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import BillSheet, { type BillData } from "@/components/BillSheet";
+
+const DIR_KEY = "billDirectorName";
 
 function BatchPrintInner() {
   const sp = useSearchParams();
@@ -11,6 +14,13 @@ function BatchPrintInner() {
   const [bills, setBills] = useState<BillData[]>([]);
   const [errors, setErrors] = useState(0);
   const [done, setDone] = useState(false);
+  const [director, setDirector] = useState("");
+  const [dirDraft, setDirDraft] = useState("");
+
+  useEffect(() => {
+    setDirector(window.localStorage.getItem(DIR_KEY) || "");
+    setDirDraft(window.localStorage.getItem(DIR_KEY) || "");
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -40,7 +50,20 @@ function BatchPrintInner() {
           .bill-page:last-child { page-break-after: auto; }
         }
       `}</style>
-      <div className="bill-toolbar" style={{ maxWidth: 960, margin: "0 auto 12px", textAlign: "right" }}>
+      <div className="bill-toolbar" style={{ maxWidth: 820, margin: "0 auto 12px", textAlign: "right" }}>
+        <label style={{ fontSize: 12, marginRight: 8 }}>
+          Director name:{" "}
+          <input
+            value={dirDraft}
+            onChange={(e) => {
+              setDirDraft(e.target.value);
+              setDirector(e.target.value);
+              window.localStorage.setItem(DIR_KEY, e.target.value);
+            }}
+            placeholder="e.g. K. Mensah"
+            style={{ padding: "4px 8px", border: "1px solid #bbb", borderRadius: 4, width: 180 }}
+          />
+        </label>
         <button className="btn btn-primary" onClick={() => window.print()}>Print {bills.length} bill(s)</button>
         {" "}
         <button className="btn btn-ghost" onClick={() => history.back()}>Back</button>
@@ -48,7 +71,7 @@ function BatchPrintInner() {
       </div>
       {bills.map((b) => (
         <div className="bill-page" key={b.customer.id + b.printedOn}>
-          <BillSheet data={b} />
+          <BillSheet data={b} directorName={director} />
         </div>
       ))}
     </div>

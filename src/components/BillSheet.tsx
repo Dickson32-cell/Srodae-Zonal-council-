@@ -27,20 +27,20 @@ function formatDate(iso: string): string {
   return `${day}${suffix} ${month}, ${d.getFullYear()}`;
 }
 
-export default function BillSheet({ data }: { data: BillData }) {
+export default function BillSheet({ data, directorName }: { data: BillData; directorName?: string }) {
   const { customer, bill } = data;
   const printed = formatDate(data.printedOn);
   return (
     <div className="bill-sheet">
       <style>{`
-        .bill-sheet { display: flex; gap: 10px; max-width: 960px; margin: 0 auto 14px; background: #fff; padding: 10px; border: 1px solid #333; font-family: Arial, Helvetica, sans-serif; color: #000; }
-        .bill-main { flex: 1 1 68%; border: 1px solid #444; padding: 12px 14px; }
-        .bill-stub { flex: 1 1 30%; border: 1px solid #444; padding: 12px; display: flex; flex-direction: column; }
-        .bill-head { display: flex; align-items: center; gap: 10px; }
-        .bill-head .logo { width: 54px; height: 54px; object-fit: contain; }
-        .bill-head .htxt { flex: 1; text-align: center; font-weight: bold; font-size: 13px; line-height: 1.5; }
-        .bill-head .htxt .sub { font-weight: normal; font-size: 10px; }
-        .bill-cust { border-top: 1px solid #444; border-bottom: 1px solid #444; margin-top: 10px; padding: 7px 0; font-size: 12.5px; font-weight: bold; }
+        .bill-sheet { display: flex; gap: 10px; max-width: 820px; margin: 0 auto 14px; background: #fff; padding: 10px; border: 1px solid #333; font-family: Arial, Helvetica, sans-serif; color: #000; }
+        .bill-main { flex: 1 1 68%; border: 1px solid #444; padding: 10px 12px; }
+        .bill-stub { flex: 1 1 30%; border: 1px solid #444; padding: 10px; display: flex; flex-direction: column; }
+        .bill-head { display: flex; align-items: center; gap: 8px; }
+        .bill-head .logo { width: 44px; height: 44px; object-fit: contain; }
+        .bill-head .htxt { flex: 1; text-align: center; font-weight: bold; font-size: 11px; line-height: 1.5; }
+        .bill-head .htxt .sub { font-weight: normal; font-size: 8.5px; }
+        .bill-cust { border-top: 1px solid #444; border-bottom: 1px solid #444; margin-top: 8px; padding: 6px 0; font-size: 10.5px; font-weight: bold; }
         .bill-cust small { font-weight: normal; }
         .bill-arealine { border-bottom: 1px solid #444; padding: 5px 0; font-size: 11px; font-weight: bold; }
         .bill-desc { display: flex; justify-content: space-between; padding: 5px 0; font-size: 11px; border-bottom: 1px solid #444; }
@@ -51,12 +51,19 @@ export default function BillSheet({ data }: { data: BillData }) {
         .bill-legal { margin-top: 10px; font-size: 10.5px; line-height: 1.55; }
         .bill-legal p { margin: 0 0 8px; }
         .bill-printed { text-align: right; font-style: italic; font-size: 10px; margin-top: 8px; }
-        .stub-rate { border: 1px solid #444; padding: 5px 7px; font-size: 11px; font-weight: bold; margin-top: 6px; }
-        .stub-box { border: 1px solid #444; padding: 5px 7px; font-size: 11px; min-height: 34px; margin-top: 6px; }
-        .stub-contact { text-align: center; font-size: 9.5px; font-weight: bold; margin-top: 6px; line-height: 1.6; }
-        .stub-sign { text-align: center; font-size: 26px; margin-top: 26px; }
+        .bill-signature { display: flex; justify-content: space-between; gap: 40px; margin-top: 22px; padding: 0 6px; }
+        .sig-line { flex: 1 1 55%; text-align: center; }
+        .sig-stamp { flex: 1 1 40%; text-align: center; }
+        .sig-name { font-family: "Segoe Script", "Brush Script MT", "Lucida Handwriting", cursive; font-size: 16px; display: block; min-height: 22px; margin-bottom: 2px; }
+        .sig-rule { border-top: 1px solid #444; }
+        .sig-cap { font-size: 9.5px; font-weight: bold; margin-top: 3px; letter-spacing: 0.3px; }
+        .stub-rate { border: 1px solid #444; padding: 4px 6px; font-size: 10px; font-weight: bold; margin-top: 5px; }
+        .stub-box { border: 1px solid #444; padding: 4px 6px; font-size: 10px; min-height: 30px; margin-top: 5px; }
+        .stub-contact { text-align: center; font-size: 9px; font-weight: bold; margin-top: 5px; line-height: 1.5; }
+        .stub-sign { text-align: center; font-size: 22px; margin-top: 18px; }
         .stub-logos { text-align: center; font-size: 9px; color: #555; }
         @media print {
+          @page { size: A5 portrait; margin: 8mm; }
           .bill-sheet { max-width: none; border: none; }
         }
       `}</style>
@@ -132,6 +139,19 @@ export default function BillSheet({ data }: { data: BillData }) {
         </div>
 
         <div className="bill-printed">Printed on: {printed}</div>
+
+        {/* DIRECTOR SIGNATURE BLOCK */}
+        <div className="bill-signature">
+          <div className="sig-line">
+            <span className="sig-name">{directorName?.trim() ? directorName : "\u00A0"}</span>
+            <div className="sig-rule" />
+            <div className="sig-cap">DIRECTOR (Name &amp; Signature)</div>
+          </div>
+          <div className="sig-stamp">
+            <div className="sig-rule" />
+            <div className="sig-cap">ZONAL COUNCIL STAMP</div>
+          </div>
+        </div>
       </div>
 
       {/* ============ COUNTERFOIL ============ */}
