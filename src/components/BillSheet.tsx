@@ -34,7 +34,10 @@ export default function BillSheet({ data, directorName }: { data: BillData; dire
     <div className="bill-sheet">
       <style>{`
         .bill-sheet { display: flex; gap: 10px; max-width: 820px; margin: 0 auto 14px; background: #fff; padding: 10px; border: 1px solid #333; font-family: Arial, Helvetica, sans-serif; color: #000; }
-        .bill-main { flex: 1 1 68%; border: 1px solid #444; padding: 10px 12px; }
+        .bill-main { flex: 1 1 68%; border: 1px solid #444; padding: 10px 12px; position: relative; overflow: hidden; }
+        .bill-watermark { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 0; }
+        .bill-watermark img { width: 72%; max-width: 330px; opacity: 0.07; }
+        .bill-main > div:not(.bill-watermark), .bill-main > table { position: relative; z-index: 1; }
         .bill-stub { flex: 1 1 30%; border: 1px solid #444; padding: 10px; display: flex; flex-direction: column; }
         .bill-head { display: flex; align-items: center; gap: 8px; }
         .bill-head .logo { width: 44px; height: 44px; object-fit: contain; }
@@ -65,11 +68,17 @@ export default function BillSheet({ data, directorName }: { data: BillData; dire
         @media print {
           @page { size: A5 portrait; margin: 8mm; }
           .bill-sheet { max-width: none; border: none; }
+          .bill-watermark img { opacity: 0.07; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
       `}</style>
 
       {/* ============ MAIN BILL ============ */}
       <div className="bill-main">
+        {/* WATERMARK: assembly logo behind all content */}
+        <div className="bill-watermark" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assembly-logo.jpg" alt="" />
+        </div>
         <div className="bill-head">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assembly-logo.jpg" alt="Assembly logo" className="logo" />
