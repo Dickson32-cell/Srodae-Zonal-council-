@@ -424,6 +424,8 @@ export default function RegisterTable({
                   <td><span className={`badge ${r.status === "PAID" ? "paid" : "unpaid"}`}>{r.status === "PAID" ? "PAID" : "UNPAID"}</span></td>
                   <td className="no-print" style={{ whiteSpace: "nowrap" }}>
                     <button className="btn btn-ghost btn-sm" onClick={() => openEdit(r)}>Edit</button>
+                    {" "}
+                    <a className="btn btn-ghost btn-sm" href={`/bill/${r.id}`} target="_blank" rel="noopener noreferrer">Bill</a>
                     {r.status !== "PAID" && canPay && (
                       <>
                         {" "}
