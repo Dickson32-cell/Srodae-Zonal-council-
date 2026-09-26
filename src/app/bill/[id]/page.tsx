@@ -1,26 +1,8 @@
 "use client";
-// Printable bill — reproduces the Assembly's Business Operating Permit layout:
-// left = main bill (header, customer line, rates table, legal text), right = counterfoil stub.
-// BOP is left empty (—) until zonal councils receive the BOP collection mandate.
+// Printable bill for ONE client - Assembly-style layout (main bill + counterfoil).
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-
-type BillData = {
-  councilId: string;
-  councilName: string;
-  customer: {
-    id: string; name: string; businessName: string;
-    telephone: string; electoralArea: string; streetName: string;
-  };
-  bill: {
-    structureRate: number; bop: null; basicRate: number; rent: number;
-    arrears: number; payment: number; totalDue: number; status: string;
-    description: string;
-  };
-  printedOn: string;
-};
-
-const GHS = (n: number) => n.toFixed(2);
+import BillSheet, { type BillData } from "@/components/BillSheet";
 
 export default function BillPage() {
   const params = useParams<{ id: string }>();
@@ -38,155 +20,17 @@ export default function BillPage() {
   if (err) return <p style={{ padding: 40 }}>{err}</p>;
   if (!data) return <p style={{ padding: 40 }}>Loading…</p>;
 
-  const { customer, bill } = data;
-  const areaLine = `${customer.electoralArea} - ${customer.streetName}`;
-  const printed = new Date(data.printedOn).toLocaleDateString("en-GB", {
-    day: "numeric", month: "long", year: "numeric",
-  }).replace(/(\d+) /, "$1TH ").toUpperCase();
-
   return (
-    <div className="bill-wrap">
+    <div style={{ background: "#eef1f6", minHeight: "100vh", padding: 18 }}>
       <style>{`
-        .bill-wrap { font-family: Arial, Helvetica, sans-serif; color: #000; background: #eef1f6; min-height: 100vh; padding: 18px; }
-        .bill-no-print { margin: 0 auto 12px; max-width: 960px; text-align: right; }
-        .bill-sheet { display: flex; gap: 10px; max-width: 960px; margin: 0 auto; background: #fff; padding: 10px; border: 1px solid #333; }
-        .bill-main { flex: 1 1 68%; border: 1px solid #444; padding: 12px 14px; position: relative; }
-        .bill-stub { flex: 1 1 30%; border: 1px solid #444; padding: 12px; display: flex; flex-direction: column; }
-        .bill-head { display: flex; align-items: center; gap: 10px; }
-        .bill-head .logo { width: 54px; height: 54px; border: 1px solid #999; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 7px; text-align: center; color: #555; }
-        .bill-head .htxt { flex: 1; text-align: center; font-weight: bold; font-size: 13px; line-height: 1.5; }
-        .bill-head .htxt .sub { font-weight: normal; font-size: 10px; }
-        .bill-cust { border-top: 1px solid #444; border-bottom: 1px solid #444; margin-top: 10px; padding: 7px 0; font-size: 12.5px; font-weight: bold; }
-        .bill-cust small { font-weight: normal; }
-        .bill-arealine { border-bottom: 1px solid #444; padding: 5px 0; font-size: 11px; font-weight: bold; }
-        .bill-desc { display: flex; justify-content: space-between; padding: 5px 0; font-size: 11px; border-bottom: 1px solid #444; }
-        table.bill-rates { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 2px; }
-        table.bill-rates th, table.bill-rates td { padding: 6px 4px; }
-        table.bill-rates th { font-weight: bold; text-align: left; border-bottom: 1px solid #444; }
-        table.bill-rates td { border-bottom: 1px solid #ddd; }
-        .bill-legal { margin-top: 10px; font-size: 10.5px; line-height: 1.55; }
-        .bill-legal p { margin: 0 0 8px; }
-        .bill-printed { text-align: right; font-style: italic; font-size: 10px; margin-top: 8px; }
-        .stub-rate { border: 1px solid #444; padding: 5px 7px; font-size: 11px; font-weight: bold; margin-top: 6px; }
-        .stub-box { border: 1px solid #444; padding: 5px 7px; font-size: 11px; min-height: 34px; margin-top: 6px; }
-        .stub-contact { text-align: center; font-size: 9.5px; font-weight: bold; margin-top: 6px; line-height: 1.6; }
-        .stub-payhead { text-align: center; font-size: 10.5px; font-weight: bold; margin-top: 10px; line-height: 1.6; }
-        .stub-sign { text-align: center; font-size: 26px; margin-top: 26px; font-family: "Segoe Script", "Brush Script MT", cursive; }
-        @media print {
-          .bill-no-print { display: none !important; }
-          body { background: #fff !important; }
-          .bill-wrap { background: #fff; padding: 0; }
-          .bill-sheet { max-width: none; }
-        }
+        @media print { .bill-no-print { display: none !important; } body { background: #fff !important; } }
       `}</style>
-
-      <div className="bill-no-print">
+      <div className="bill-no-print" style={{ maxWidth: 960, margin: "0 auto 12px", textAlign: "right" }}>
         <button className="btn btn-primary" onClick={() => window.print()}>Print bill</button>
         {" "}
         <button className="btn btn-ghost" onClick={() => history.back()}>Back</button>
       </div>
-
-      <div className="bill-sheet">
-        {/* ============ MAIN BILL ============ */}
-        <div className="bill-main">
-          <div className="bill-head">
-            <div className="logo">[LOGO]</div>
-            <div className="htxt">
-              {data.councilName.toUpperCase()}
-              <br />
-              <span className="sub">TEMPORAL STRUCTURES BILL</span>
-              <br />
-              <span className="sub">PAY BEFORE 31ST MARCH, 2027 TO AVOID PENALTY</span>
-            </div>
-            <div className="logo">[LOGO]</div>
-          </div>
-
-          <div className="bill-cust">
-            {customer.name.toUpperCase()} — {customer.businessName.toUpperCase()}
-            {"  "}<small>Tel No:</small> {customer.telephone}
-            {"  "}<small>Customer ID:</small> {customer.id}
-          </div>
-
-          <div className="bill-arealine">
-            {customer.electoralArea.toUpperCase()} -&nbsp;
-          </div>
-
-          <div className="bill-desc">
-            <span>{customer.electoralArea} — {customer.businessName || customer.name}</span>
-            <span>{bill.description}</span>
-          </div>
-
-          <table className="bill-rates">
-            <thead>
-              <tr>
-                <th>Structure<br />Rate</th>
-                <th>BOP</th>
-                <th>Rent</th>
-                <th>Basic Rate</th>
-                <th>Arrears</th>
-                <th>Payment</th>
-                <th>Amount<br />Due</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>{GHS(bill.structureRate)} GHS</td>
-                <td>—</td>
-                <td>{bill.rent} GHS</td>
-                <td>{GHS(bill.basicRate)} GHS</td>
-                <td>{GHS(bill.arrears)} GHS</td>
-                <td>{GHS(bill.payment)} GHS</td>
-                <td>{GHS(bill.totalDue)}<br />GHS</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div className="bill-legal">
-            <p>
-              PAY YOUR BILLS PROMPTLY FOR ACCELERATED DEVELOPMENT OF THE {data.councilName.toUpperCase().replace(" ZONAL COUNCIL", "")} ZONE.
-              The Zonal Council is vested with power to collect temporal structure fees within its electoral
-              areas by the provisions of the Local Governance Act 2016 (ACT 936) and other relevant Bye-laws.
-              In the event of failure to comply with this Bill, the PROPERTY or BUSINESS OWNER SHALL BE
-              LIABLE TO CIVIL PROSECUTION for the recovery of the outstanding amount plus interest.
-            </p>
-            <p>
-              NB: Unless otherwise stated, penalty for defaulting any rate is 3x the amount due. Penalty for all
-              defaulting rate payers take effect from the date stated above. Payment can be done at the Zonal
-              Council office, through revenue collectors, or at the Assembly pay point. Obtain an official
-              General Counterfoil Receipt (GCR) for any amount paid and do not make any payment without this BILL.
-            </p>
-          </div>
-
-          <div className="bill-printed">Printed on: {printed}</div>
-        </div>
-
-        {/* ============ COUNTERFOIL ============ */}
-        <div className="bill-stub">
-          <div className="stub-logos">[LOGO] [COAT OF ARMS]</div>
-          <div className="stub-contact">
-            {data.councilName.toUpperCase()}<br />
-            TEMPORAL STRUCTURES BILL<br /><br />
-            <b>{customer.name.toUpperCase()} — {customer.businessName.toUpperCase()}</b><br />
-            TEL NO: {customer.telephone}<br />
-            CUSTOMER ID: {customer.id}
-          </div>
-          <div className="stub-rate">STRUCTURE RATE: {GHS(bill.structureRate)} GHS</div>
-          <div className="stub-rate">BOP: — (NOT COLLECTED)</div>
-          <div className="stub-rate">BASIC RATE: {GHS(bill.basicRate)} GHS</div>
-          <div className="stub-rate">ARREARS: {GHS(bill.arrears)} GHS</div>
-          <div className="stub-rate">RENT: {bill.rent} GHS</div>
-          <div className="stub-rate">PAYMENT: {GHS(bill.payment)} GHS</div>
-          <div className="stub-rate">TOTAL DUE: {GHS(bill.totalDue)} GHS</div>
-          <div className="stub-box">Received by:</div>
-          <div className="stub-box">Date:</div>
-          <div className="stub-box">Delivered by:</div>
-          <div className="stub-box">Date:</div>
-          <div className="stub-sign">✗</div>
-          <div className="stub-printed" style={{ textAlign: "right", fontStyle: "italic", fontSize: 10, marginTop: "auto" }}>
-            Printed on: {printed}
-          </div>
-        </div>
-      </div>
+      <BillSheet data={data} />
     </div>
   );
 }
