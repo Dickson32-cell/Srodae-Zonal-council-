@@ -270,6 +270,14 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
   .m-chip.on.chip-paid { background: var(--green, #0b6e43); border-color: var(--green, #0b6e43); }
   .m-chip.on.chip-unpaid { background: #8a5a00; border-color: #8a5a00; }
 
+  /* Mobile register actions: print/export within thumb reach */
+  .m-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 12px; }
+  .m-actions .btn { min-height: 44px; }
+  .m-actions .btn-primary, .m-actions .btn-green { grid-column: 1 / -1; }
+  .m-actions-row2 { display: flex; gap: 8px; grid-column: 1 / -1; }
+  .m-actions-row2 .btn { flex: 1; }
+
+
   .modal-card { width: 100% !important; margin: 12px !important; }
 }
 

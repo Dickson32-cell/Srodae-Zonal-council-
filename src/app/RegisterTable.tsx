@@ -349,6 +349,25 @@ export default function RegisterTable({
           </div>
         </div>
 
+        {/* Phones: register actions — print bills & export within thumb reach */}
+        <div className="m-actions only-mobile">
+          <button className="btn btn-green" disabled={sel.size === 0} onClick={printSelected}>
+            Print Bills ({sel.size})
+          </button>
+          <button className="btn btn-ghost" onClick={printAllFiltered}>
+            Bills for All ({rows.length})
+          </button>
+          {canCreate && (
+            <button className="btn btn-primary" onClick={() => { setShowForm((s) => !s); setFormOk(""); }}>
+              New Record
+            </button>
+          )}
+          <div className="m-actions-row2">
+            <button className="btn btn-ghost btn-sm" onClick={exportExcel}>Export Excel</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => window.print()}>Print List</button>
+          </div>
+        </div>
+
         {showForm && (
           <form onSubmit={saveRecord} className="card" style={{ background: "#fbfdff" }}>
             <h2>New Record</h2>
