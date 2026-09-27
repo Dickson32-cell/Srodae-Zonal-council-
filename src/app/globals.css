@@ -240,9 +240,35 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 
   .user-card { border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-bottom: 10px; background: var(--white); }
   .user-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
-  .user-card-meta { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .user-card-meta { font-size: 12px; color: var(--muted); margin-bottom: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .bill-tick { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--navy); padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; background: #fbfdff; }
+  .bill-tick input { width: 16px; height: 16px; accent-color: var(--green, #0b6e43); }
   .row-actions { display: flex; flex-wrap: wrap; gap: 6px; }
-  .row-actions .btn { padding: 6px 10px; font-size: 12px; }
+  .row-actions .btn { padding: 9px 12px; font-size: 13px; min-height: 44px; }
+
+  /* Balance as the hero figure of each card */
+  .user-card-balance { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; background: #f4f8f5; border: 1px solid #dbe7de; border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; }
+  .user-card-balance .b-label { font-size: 10.5px; letter-spacing: 0.08em; font-weight: 700; color: var(--muted); }
+  .user-card-balance .b-value { font-size: 22px; font-weight: 800; color: var(--navy); font-variant-numeric: tabular-nums; }
+  .user-card-balance .b-note { font-size: 12px; color: var(--muted); }
+  .user-card-balance.is-paid { background: #eef6f0; border-color: #cfe5d5; }
+  .user-card-balance.is-paid .b-value { color: var(--green, #0b6e43); }
+
+  /* Whole card tappable -> detail view; buttons/ticks exempted via stopPropagation */
+  .user-card-tap { cursor: pointer; }
+  .user-card-tap:active { background: #f2f7f4; }
+
+  /* Sticky compact filter bar: search + area in one row, status chips second */
+  .m-filters { position: sticky; top: 0; z-index: 30; background: var(--bg, #f6f8f7); margin: -14px -14px 12px; padding: 10px 14px 8px; border-bottom: 1px solid var(--line); box-shadow: 0 2px 6px rgba(10,40,30,0.06); }
+  .m-filters .m-row1 { display: flex; gap: 8px; }
+  .m-filters .m-row1 input { flex: 1; min-width: 0; }
+  .m-filters .m-row1 select { width: 118px; }
+  .m-filters .m-row1 input, .m-filters .m-row1 select { padding: 9px 10px; min-height: 44px; border: 1px solid var(--line-strong, #b8ccc0); border-radius: 8px; font-size: 15px; }
+  .m-chips { display: flex; gap: 6px; margin-top: 8px; }
+  .m-chip { flex: 1; text-align: center; padding: 8px 0; min-height: 36px; border: 1px solid var(--line); border-radius: 999px; background: var(--white); font-size: 12.5px; font-weight: 600; color: var(--muted); }
+  .m-chip.on { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .m-chip.on.chip-paid { background: var(--green, #0b6e43); border-color: var(--green, #0b6e43); }
+  .m-chip.on.chip-unpaid { background: #8a5a00; border-color: #8a5a00; }
 
   .modal-card { width: 100% !important; margin: 12px !important; }
 }

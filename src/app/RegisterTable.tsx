@@ -290,7 +290,7 @@ export default function RegisterTable({
         <h2>Temporal Structures Register</h2>
         <p className="sub">Official fee register — Srodae Zonal Council, New Juaben South Municipal Assembly</p>
 
-        <div className="filters">
+        <div className="filters only-desktop">
           <div className="f">
             <label className="fld" style={{ marginBottom: 0 }}>
               <span className="cap">Electoral Area</span>
@@ -325,6 +325,28 @@ export default function RegisterTable({
           <button className="btn btn-ghost" onClick={printAllFiltered} title="Print a bill for every client in the current filter">
             Bills for All ({rows.length})
           </button>
+        </div>
+
+        {/* Phones: sticky compact filter bar */}
+        <div className="m-filters only-mobile">
+          <div className="m-row1">
+            <input
+              type="text"
+              placeholder="Search name, serial, street…"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              aria-label="Search records"
+            />
+            <select value={area} onChange={(e) => setArea(e.target.value)} aria-label="Electoral area">
+              <option value="">Area</option>
+              {AREAS.map((a) => <option key={a} value={a}>{a}</option>)}
+            </select>
+          </div>
+          <div className="m-chips" role="group" aria-label="Status filter">
+            <button type="button" className={"m-chip" + (status === "" ? " on" : "")} onClick={() => setStatus("")}>All</button>
+            <button type="button" className={"m-chip chip-unpaid" + (status === "UNPAID" ? " on" : "")} onClick={() => setStatus("UNPAID")}>Unpaid</button>
+            <button type="button" className={"m-chip chip-paid" + (status === "PAID" ? " on" : "")} onClick={() => setStatus("PAID")}>Paid</button>
+          </div>
         </div>
 
         {showForm && (
@@ -466,27 +488,28 @@ export default function RegisterTable({
             <p style={{ color: "var(--muted)", textAlign: "center" }}>No records match the current filters.</p>
           )}
           {rows.map((r) => (
-            <div key={r.id} className="user-card">
+            <div key={r.id} className="user-card user-card-tap" onClick={() => openDetail(r)}>
               <div className="user-card-head">
                 <div>
                   <div className="serial" style={{ fontSize: 14 }}>{r.serialNumber}</div>
-                  <label style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, marginTop: 4 }}>
-                    <input type="checkbox" checked={sel.has(r.id)} onChange={() => toggleSel(r.id)} /> Bill
-                  </label>
-                  <div style={{ fontWeight: 700 }}><button className="linklike" title="View details" onClick={() => openDetail(r)}>{r.name}</button></div>
+                  <div style={{ fontWeight: 700 }}><button className="linklike" onClick={(e) => { e.stopPropagation(); openDetail(r); }}>{r.name}</button></div>
                   <div style={{ fontSize: 12.5, color: "var(--muted)" }}>{r.businessName}</div>
                 </div>
                 <span className={`badge ${r.status === "PAID" ? "paid" : "unpaid"}`}>{r.status === "PAID" ? "PAID" : "UNPAID"}</span>
               </div>
+              <div className={"user-card-balance" + (r.status === "PAID" ? " is-paid" : "")}>
+                <span className="b-label">BALANCE</span>
+                <span className="b-value">GH₵ {r.status === "PAID" ? "0.00" : r.balance.toFixed(2)}</span>
+                <span className="b-note">fee {r.fee.toFixed(2)} · total {r.status === "PAID" ? "0.00" : r.total.toFixed(2)}</span>
+              </div>
               <div className="user-card-meta">
-                {r.telephone} · {r.electoralArea} · {r.streetName}
+                <label className="bill-tick" onClick={(e) => e.stopPropagation()}>
+                  <input type="checkbox" checked={sel.has(r.id)} onChange={() => toggleSel(r.id)} />
+                  Bill
+                </label>
+                <span>{r.telephone} · {r.electoralArea} · {r.streetName}</span>
               </div>
-              <div style={{ display: "flex", gap: 14, marginBottom: 10, fontSize: 13 }}>
-                <div>Fee <b>{r.fee.toFixed(2)}</b></div>
-                <div>Balance <b>{r.status === "PAID" ? "0.00" : r.balance.toFixed(2)}</b></div>
-                <div>Total <b>{r.status === "PAID" ? "0.00" : r.total.toFixed(2)}</b></div>
-              </div>
-              <div className="row-actions">
+              <div className="row-actions" onClick={(e) => e.stopPropagation()}>
                 {r.hasGps && (
                   <a href={r.mapsUrl || "#"} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">
                     Map
